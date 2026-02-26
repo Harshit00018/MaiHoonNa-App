@@ -6,7 +6,7 @@ import * as medicationService from '../services/medication_service';
 const router = Router();
 
 router.get('/beneficiary/:beneficiaryId', authenticate, async (req: Request, res: Response) => {
-  const meds = await medicationService.getBeneficiaryMedications(req.params.beneficiaryId);
+  const meds = await medicationService.getBeneficiaryMedications(req.params.beneficiaryId as string);
   res.json({ success: true, data: meds });
 });
 

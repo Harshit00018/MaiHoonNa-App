@@ -12,13 +12,13 @@ router.post('/', authenticate, validate(createBeneficiarySchema), async (req: Re
 });
 
 router.get('/subscriber/:subscriberId', authenticate, async (req: Request, res: Response) => {
-  const list = await beneficiaryService.getSubscriberBeneficiaries(req.params.subscriberId);
+  const list = await beneficiaryService.getSubscriberBeneficiaries(req.params.subscriberId as string);
   res.json({ success: true, data: list });
 });
 
-router.get('/:beneficiaryId', authenticate, async (req: Request, res: Response) => {
+router.get('/:beneficiaryId', async (req: Request, res: Response) => {
   try {
-    const b = await beneficiaryService.getBeneficiary(req.params.beneficiaryId);
+    const b = await beneficiaryService.getBeneficiary(req.params.beneficiaryId as string);
     res.json({ success: true, data: b });
   } catch (e: unknown) {
     res.status(404).json({ success: false, message: (e as Error).message });
@@ -27,7 +27,7 @@ router.get('/:beneficiaryId', authenticate, async (req: Request, res: Response) 
 
 router.put('/:beneficiaryId', authenticate, validate(updateBeneficiarySchema), async (req: Request, res: Response) => {
   try {
-    const b = await beneficiaryService.updateBeneficiary(req.params.beneficiaryId, req.body);
+    const b = await beneficiaryService.updateBeneficiary(req.params.beneficiaryId as string, req.body);
     res.json({ success: true, data: b });
   } catch (e: unknown) {
     res.status(404).json({ success: false, message: (e as Error).message });

@@ -64,7 +64,7 @@ export const checkOut = async (data: {
       status: 'completed',
       medicationAdherence: data.medicationAdherence,
       vitals: data.vitals ? (data.vitals as Prisma.InputJsonValue) : undefined,
-      mood: data.mood as Prisma.EnumMoodTypeFilter | undefined,
+      mood: data.mood as any,
       notes: data.notes,
     },
   });

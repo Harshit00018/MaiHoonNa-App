@@ -24,11 +24,21 @@ export const purchaseSubscription = async (
     throw new Error(`Package type ${mappedType} not found in database.`);
   }
 
-  // 1. Create Beneficiary mapped to the logged-in User
+  // 1a. The Beneficiary is technically a user in this schema, so we create a simple placeholder user row first
+  const newBeneficiaryUser = await prisma.user.create({
+    data: {
+      id: generateUUID(),
+      phone: `+91111${Math.floor(Math.random() * 9000000)}`, // fake distinct phone
+      name: beneficiaryData.name,
+      role: 'beneficiary'
+    }
+  });
+
+  // 1b. Create Beneficiary mapped to the logged-in User
   const beneficiary = await prisma.beneficiary.create({
     data: {
       id: generateUUID(),
-      userId: generateUUID(), // Mocking a distinct User ID for the Beneficiary themselves
+      userId: newBeneficiaryUser.id,
       subscriberId: userId,
       name: beneficiaryData.name,
       age: beneficiaryData.age,
@@ -39,15 +49,6 @@ export const purchaseSubscription = async (
         phone: beneficiaryData.phone,
         relation: beneficiaryData.relationship
       }],
-      // The Beneficiary is technically a user in this schema, so we create a simple placeholder user row 
-      user: {
-        create: {
-          id: generateUUID(),
-          phone: `+91000${Math.floor(Math.random() * 9000000)}`, // fake distinct phone
-          name: beneficiaryData.name,
-          role: 'beneficiary'
-        }
-      }
     }
   });
 

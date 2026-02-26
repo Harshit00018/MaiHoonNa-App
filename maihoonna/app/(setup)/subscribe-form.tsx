@@ -88,8 +88,21 @@ export default function SubscribeFormScreen() {
             setCurrentStep(2);
         } else {
             // Both steps complete, proceed to checkout
-            // You could pass the grouped form data here as params or via a global state manager (Redux/Zustand)
-            router.push('/(setup)/checkout');
+            // Pass the grouped form data here as params
+            router.push({
+                pathname: '/(setup)/checkout',
+                params: {
+                    packageId: params.packageId || 'silver',
+                    beneficiaryData: JSON.stringify({
+                        name: beneficiaryForm.fullName,
+                        age: 65, // Using a default age since dob needs parsing
+                        gender: beneficiaryForm.gender || "Not specified",
+                        address: beneficiaryForm.address,
+                        relationship: beneficiaryForm.relationship,
+                        phone: beneficiaryForm.phone
+                    })
+                }
+            });
         }
     };
 

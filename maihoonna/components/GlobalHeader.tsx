@@ -23,6 +23,16 @@ export function GlobalHeader({ title = "MaiHoonNa" }: GlobalHeaderProps) {
         router.replace('/(tabs)/');
     };
 
+    const handleGoProfile = () => {
+        setIsMenuOpen(false);
+        router.push('/(tabs)/profile'); // Assuming profile tab/page exists
+    };
+
+    const handleGoPackages = () => {
+        setIsMenuOpen(false);
+        router.push('/(setup)/subscription-packages'); // Link to packages
+    };
+
     return (
         <View style={styles.appBar}>
             <Text style={styles.appTitle}>{title}</Text>
@@ -46,6 +56,24 @@ export function GlobalHeader({ title = "MaiHoonNa" }: GlobalHeaderProps) {
                     >
                         <Ionicons name="home-outline" size={20} color="#374151" style={{ marginRight: 8 }} />
                         <Text style={styles.dropdownItemText}>Dashboard</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.dropdownItem}
+                        onPress={handleGoProfile}
+                    >
+                        <Ionicons name="person-outline" size={20} color="#374151" style={{ marginRight: 8 }} />
+                        <Text style={styles.dropdownItemText}>Profile</Text>
+                    </TouchableOpacity>
+
+                    <View style={styles.separator} />
+
+                    <TouchableOpacity
+                        style={styles.dropdownItem}
+                        onPress={handleGoPackages}
+                    >
+                        <Ionicons name="cube-outline" size={20} color="#374151" style={{ marginRight: 8 }} />
+                        <Text style={styles.dropdownItemText}>Packages</Text>
                     </TouchableOpacity>
 
                     <View style={styles.separator} />

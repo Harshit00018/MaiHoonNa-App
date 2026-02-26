@@ -1,0 +1,23 @@
+app/api/beneficiaries.ts(15,68): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+app/api/beneficiaries.ts(21,55): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+app/api/beneficiaries.ts(30,58): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+app/api/dashboard.ts(9,14): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Beneficiary"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Beneficiary"> | undefined'.
+app/api/dashboard.ts(50,7): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Visit"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Visit"> | undefined'.
+app/api/emergency.ts(20,62): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+app/api/medications.ts(9,66): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+app/api/users.ts(10,44): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+app/api/users.ts(19,47): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+app/api/visits.ts(15,58): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+app/api/visits.ts(20,60): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+app/services/visit_service.ts(67,33): error TS2694: Namespace '"C:/Users/91930/OneDrive/Desktop/Mai-Hoonaa/backend/node_modules/.prisma/client/index".Prisma' has no exported member 'EnumMoodTypeFilter'.

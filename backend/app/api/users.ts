@@ -7,7 +7,7 @@ const router = Router();
 
 router.get('/:userId', authenticate, async (req: Request, res: Response) => {
   try {
-    const user = await userService.getUser(req.params.userId);
+    const user = await userService.getUser(req.params.userId as string);
     res.json({ success: true, data: user });
   } catch (e: unknown) {
     res.status(404).json({ success: false, message: (e as Error).message });
@@ -16,7 +16,7 @@ router.get('/:userId', authenticate, async (req: Request, res: Response) => {
 
 router.put('/:userId', authenticate, validate(updateUserSchema), async (req: Request, res: Response) => {
   try {
-    const user = await userService.updateUser(req.params.userId, req.body);
+    const user = await userService.updateUser(req.params.userId as string, req.body);
     res.json({ success: true, data: user });
   } catch (e: unknown) {
     res.status(404).json({ success: false, message: (e as Error).message });

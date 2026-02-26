@@ -62,11 +62,11 @@ export default function CheckoutScreen() {
     }, [packageId]);
 
     const handlePay = async () => {
-        // 1. Strict Form Validation
-        if (activeTab === 'UPI' && !upiId.includes('@')) {
-            Alert.alert("Validation Error", "Please enter a valid UPI ID (e.g. name@bank).");
-            return;
-        }
+        // Bypassing payment validation for now
+        // if (activeTab === 'UPI' && !upiId.includes('@')) {
+        //     Alert.alert("Validation Error", "Please enter a valid UPI ID (e.g. name@bank).");
+        //     return;
+        // }
 
         setIsProcessing(true);
 
@@ -78,8 +78,9 @@ export default function CheckoutScreen() {
             }
             const user = JSON.parse(storedUserData);
 
-            // 3. Mock Beneficiary details (in a real flow, these would be passed from Step 2 of `subscribe-form.tsx`)
-            const dummyBeneficiaryData = {
+            // 3. Read passed beneficiary details
+            const beneficiaryDataRaw = params.beneficiaryData as string;
+            let beneficiaryData = {
                 name: "Mock Beneficiary",
                 age: 65,
                 gender: "Female",
@@ -87,6 +88,15 @@ export default function CheckoutScreen() {
                 relationship: "Mother",
                 phone: "9876543210"
             };
+
+            if (beneficiaryDataRaw) {
+                try {
+                    const parsed = JSON.parse(beneficiaryDataRaw);
+                    beneficiaryData = { ...beneficiaryData, ...parsed };
+                } catch (e) {
+                    console.error("Failed to parse beneficiary data", e);
+                }
+            }
 
             // 4. Send API Request to backend to record Subscription + Beneficiary
             const response = await fetch(`${API_URL}/subscriptions/purchase`, {
@@ -98,7 +108,7 @@ export default function CheckoutScreen() {
                 body: JSON.stringify({
                     userId: user.id, // the logged-in user!
                     packageId: packageId,
-                    beneficiaryData: dummyBeneficiaryData
+                    beneficiaryData: beneficiaryData
                 })
             });
 

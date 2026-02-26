@@ -6,7 +6,7 @@ const router = Router();
 
 router.get('/subscriber/:subscriberId', authenticate, async (req: Request, res: Response) => {
   const beneficiaries = await prisma.beneficiary.findMany({
-    where: { subscriberId: req.params.subscriberId },
+    where: { subscriberId: req.params.subscriberId as string },
   });
 
   const dashboardData = await Promise.all(
@@ -47,7 +47,7 @@ router.get('/care-companion/:ccId', authenticate, async (req: Request, res: Resp
 
   const visits = await prisma.visit.findMany({
     where: {
-      careCompanionId: req.params.ccId,
+      careCompanionId: req.params.ccId as string,
       scheduledTime: { gte: today, lt: tomorrow },
     },
     orderBy: { scheduledTime: 'asc' },

@@ -11,13 +11,13 @@ router.post('/', authenticate, validate(createVisitSchema), async (req: Request,
 });
 
 router.get('/beneficiary/:beneficiaryId', authenticate, async (req: Request, res: Response) => {
-  const limit = parseInt(req.query.limit as string) || 50;
-  const visits = await visitService.getBeneficiaryVisits(req.params.beneficiaryId, limit);
+  const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+  const visits = await visitService.getBeneficiaryVisits(req.params.beneficiaryId as string, limit);
   res.json({ success: true, data: visits });
 });
 
-router.get('/care-companion/:ccId', authenticate, async (req: Request, res: Response) => {
-  const visits = await visitService.getCareCompanionVisits(req.params.ccId, req.query.date as string);
+router.get('/care_companion/:ccId', authenticate, async (req: Request, res: Response) => {
+  const visits = await visitService.getCareCompanionVisits(req.params.ccId as string, req.query.date as string);
   res.json({ success: true, data: visits });
 });
 

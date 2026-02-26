@@ -17,7 +17,7 @@ router.get('/active', authenticate, async (_req: Request, res: Response) => {
 
 router.put('/:emergencyId', authenticate, validate(updateEmergencySchema), async (req: Request, res: Response) => {
   try {
-    const emergency = await emergencyService.updateEmergency(req.params.emergencyId, req.body);
+    const emergency = await emergencyService.updateEmergency(req.params.emergencyId as string, req.body);
     res.json({ success: true, data: emergency });
   } catch (e: unknown) {
     res.status(404).json({ success: false, message: (e as Error).message });

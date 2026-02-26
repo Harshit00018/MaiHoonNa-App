@@ -110,11 +110,16 @@ export default function DashboardScreen() {
                                     : 'https://randomuser.me/api/portraits/women/44.jpg';
 
                                 return (
-                                    <View key={b.id} style={styles.beneficiaryCard}>
+                                    <TouchableOpacity
+                                        key={b.id}
+                                        style={styles.beneficiaryCard}
+                                        onPress={() => router.push(`/(tabs)/beneficiary-profile?id=${b.id}`)}
+                                        activeOpacity={0.7}
+                                    >
                                         <Image source={{ uri: imgSource }} style={styles.bPhoto} />
                                         <View style={styles.bDetails}>
                                             <Text style={styles.bName}>{b.name}</Text>
-                                            <Text style={styles.bMeta}>{b.age} years • Relative</Text>
+                                            <Text style={styles.bMeta}>{b.age} years • {b.relationship || 'Relative'}</Text>
 
                                             {/* Stats Rows */}
                                             <View style={styles.statRow}>
@@ -133,7 +138,7 @@ export default function DashboardScreen() {
                                                 <View style={[styles.progressBarFill, { width: '65%', backgroundColor: '#111827' }]} />
                                             </View>
                                         </View>
-                                    </View>
+                                    </TouchableOpacity>
                                 );
                             })
                         ) : (
@@ -174,6 +179,57 @@ export default function DashboardScreen() {
                             </View>
                         </View>
 
+                    </>
+                ) : activeTab === 'Beneficiary' ? (
+                    <>
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionTitle}>Your Beneficiaries</Text>
+                        </View>
+
+                        {/* List Beneficiaries Again Here */}
+                        {beneficiaries.length > 0 ? (
+                            beneficiaries.map((b: any, index: number) => {
+                                const imgSource = index % 2 === 0
+                                    ? 'https://randomuser.me/api/portraits/men/32.jpg'
+                                    : 'https://randomuser.me/api/portraits/women/44.jpg';
+
+                                return (
+                                    <TouchableOpacity
+                                        key={b.id}
+                                        style={styles.beneficiaryCard}
+                                        onPress={() => router.push(`/(tabs)/beneficiary-profile?id=${b.id}`)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Image source={{ uri: imgSource }} style={styles.bPhoto} />
+                                        <View style={styles.bDetails}>
+                                            <Text style={styles.bName}>{b.name}</Text>
+                                            <Text style={styles.bMeta}>{b.age} years • {b.relationship || 'Relative'}</Text>
+
+                                            {/* Stats Rows */}
+                                            <View style={styles.statRow}>
+                                                <Text style={styles.statLabel}>Happiness Score</Text>
+                                                <Text style={styles.statValue}>85</Text>
+                                            </View>
+                                            <View style={styles.progressBarBg}>
+                                                <View style={[styles.progressBarFill, { width: '85%', backgroundColor: '#F97316' }]} />
+                                            </View>
+
+                                            <View style={styles.statRow}>
+                                                <Text style={styles.statLabel}>Hours Used</Text>
+                                                <Text style={styles.statValue}>65</Text>
+                                            </View>
+                                            <View style={styles.progressBarBg}>
+                                                <View style={[styles.progressBarFill, { width: '65%', backgroundColor: '#111827' }]} />
+                                            </View>
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })
+                        ) : (
+                            <View style={styles.emptyBox}>
+                                <Text style={{ color: '#6B7280' }}>No beneficiaries linked yet.</Text>
+                            </View>
+                        )}
                     </>
                 ) : (
                     <View style={styles.emptyBox}>
