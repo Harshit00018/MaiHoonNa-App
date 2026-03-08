@@ -152,12 +152,12 @@ export default function PaymentSuccessScreen() {
                     </View>
 
                     {/* Actions */}
-                    <TouchableOpacity style={styles.enrollBtn} onPress={() => router.replace('/(tabs)/')}>
+                    <TouchableOpacity style={styles.enrollBtn} onPress={() => router.replace('/(subscriber)')}>
                         <Text style={styles.enrollBtnText}>Enroll Beneficiary</Text>
                         <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.outlineBtn} onPress={() => router.replace('/(tabs)/')}>
+                    <TouchableOpacity style={styles.outlineBtn} onPress={() => router.replace('/(subscriber)')}>
                         <Ionicons name="home-outline" size={16} color="#374151" style={{ marginRight: 8 }} />
                         <Text style={styles.outlineBtnText}>Go to Dashboard</Text>
                     </TouchableOpacity>

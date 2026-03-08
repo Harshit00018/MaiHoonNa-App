@@ -41,7 +41,7 @@ export default function LoginPasswordScreen() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    phone: `+91${form.phone}`,
+                    phone: form.phone,
                     password: form.password
                 }),
             });
@@ -54,10 +54,14 @@ export default function LoginPasswordScreen() {
                 await AsyncStorage.setItem('userData', JSON.stringify(data.user));
 
                 // Login successful! Drop them on the dashboard preview page
-                router.push({
-                    pathname: "/(auth)/dashboard-preview",
-                    params: { user: JSON.stringify(data.user) }
-                });
+                if (data.user.role === 'care_companion') {
+                    router.replace("/(care-companion)");
+                } else {
+                    router.push({
+                        pathname: "/(auth)/dashboard-preview",
+                        params: { user: JSON.stringify(data.user) }
+                    });
+                }
             } else {
                 Alert.alert("Login Failed", data.message || "Invalid credentials.");
             }

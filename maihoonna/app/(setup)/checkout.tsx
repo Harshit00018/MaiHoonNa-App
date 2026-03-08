@@ -1,43 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
-    TextInput,
-    TouchableOpacity,
     StyleSheet,
-    SafeAreaView,
     ScrollView,
-    KeyboardAvoidingView,
+    TouchableOpacity,
+    TextInput,
+    SafeAreaView,
     Platform,
+    KeyboardAvoidingView,
     Alert,
     ActivityIndicator
 } from 'react-native';
+import { Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// 🛑 BACKEND SETUP
 const API_URL = Platform.OS === "android" ? "http://10.0.2.2:8000/api" : "http://localhost:8000/api";
+const UPI_APPS = ['Google Pay', 'PhonePe', 'Paytm', 'BHIM', 'Amazon Pay'];
 
 export default function CheckoutScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
 
-    // E.g. passing packageId='premium' from previous steps. If none, default to basic.
+    // 🛑 BACKEND STATE
     const packageId = (params.packageId as string) || 'silver';
-
-    // State to toggle between Payment methods
-    const [activeTab, setActiveTab] = useState<'UPI' | 'Cards' | 'Net Banking'>('UPI');
-
-    const [upiId, setUpiId] = useState('');
-    const [promoCode, setPromoCode] = useState('');
-    const [isProcessing, setIsProcessing] = useState(false);
-
     const [basePrice, setBasePrice] = useState(0);
     const [taxes, setTaxes] = useState(0);
     const [totalAmount, setTotalAmount] = useState('0.00');
-    const [packageName, setPackageName] = useState('Subscription');
+    const [packageName, setPackageName] = useState('Basic Care');
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    React.useEffect(() => {
+    // 🛑 UI STATE
+    const [activeTab, setActiveTab] = useState<'UPI' | 'CARDS' | 'NET_BANKING'>('UPI');
+    const [upiId, setUpiId] = useState('');
+    const [promoCode, setPromoCode] = useState('');
+
+    useEffect(() => {
         const fetchPackage = async () => {
             try {
                 const response = await fetch(`${API_URL}/subscriptions/packages`);
@@ -62,74 +62,31 @@ export default function CheckoutScreen() {
     }, [packageId]);
 
     const handlePay = async () => {
-        // Bypassing payment validation for now
-        // if (activeTab === 'UPI' && !upiId.includes('@')) {
-        //     Alert.alert("Validation Error", "Please enter a valid UPI ID (e.g. name@bank).");
-        //     return;
-        // }
-
         setIsProcessing(true);
-
         try {
-            // 2. Read persistent user ID from AsyncStorage
             const storedUserData = await AsyncStorage.getItem('userData');
-            if (!storedUserData) {
-                throw new Error("You are not logged in. Session expired.");
-            }
+            if (!storedUserData) throw new Error("You are not logged in. Session expired.");
             const user = JSON.parse(storedUserData);
 
-            // 3. Read passed beneficiary details
             const beneficiaryDataRaw = params.beneficiaryData as string;
-            let beneficiaryData = {
-                name: "Mock Beneficiary",
-                age: 65,
-                gender: "Female",
-                address: "789 Care Avenue",
-                relationship: "Mother",
-                phone: "9876543210"
-            };
-
+            let beneficiaryData = { name: "Mock Beneficiary", age: 65, gender: "Female", address: "789 Care Avenue", relationship: "Mother", phone: "9876543210" };
             if (beneficiaryDataRaw) {
-                try {
-                    const parsed = JSON.parse(beneficiaryDataRaw);
-                    beneficiaryData = { ...beneficiaryData, ...parsed };
-                } catch (e) {
-                    console.error("Failed to parse beneficiary data", e);
-                }
+                try { beneficiaryData = { ...beneficiaryData, ...JSON.parse(beneficiaryDataRaw) }; } catch (e) { }
             }
 
-            // 4. Send API Request to backend to record Subscription + Beneficiary
             const response = await fetch(`${API_URL}/subscriptions/purchase`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Usually pass Bearer token here too
-                },
-                body: JSON.stringify({
-                    userId: user.id, // the logged-in user!
-                    packageId: packageId,
-                    beneficiaryData: beneficiaryData
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, packageId: packageId, beneficiaryData: beneficiaryData })
             });
-
             const data = await response.json();
 
             if (data.success) {
-                // Success! Go to Payment Success screen with details
-                router.replace({
-                    pathname: '/(setup)/payment-success',
-                    params: {
-                        orderId: data.subscriptionId,
-                        packageName: data.package,
-                        price: totalAmount
-                    }
-                });
+                router.replace({ pathname: '/(setup)/payment-success', params: { orderId: data.subscriptionId, packageName: data.package, price: totalAmount } });
             } else {
                 throw new Error(data.message || "Payment attempt failed on server.");
             }
-
         } catch (error: any) {
-            console.error("Checkout flow error:", error);
             Alert.alert("Checkout Failed", error.message);
         } finally {
             setIsProcessing(false);
@@ -137,78 +94,76 @@ export default function CheckoutScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <KeyboardAvoidingView
-                style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            >
-                {/* Header */}
+        <View style={styles.mainBackground}>
+
+            {/* HEADER (White Background) */}
+            <SafeAreaView style={styles.safeAreaWhite}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color="#111827" />
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                        <Feather name="arrow-left" size={24} color="#111827" />
                     </TouchableOpacity>
-                    <View style={styles.headerTextContainer}>
+                    <View style={styles.headerTitles}>
                         <Text style={styles.headerTitle}>Checkout</Text>
                         <Text style={styles.headerSubtitle}>Complete your purchase securely</Text>
                     </View>
-                    <View style={{ width: 40 }} /> {/* Spacer */}
+                    <View style={styles.headerSpacer} />
                 </View>
+            </SafeAreaView>
 
-                <ScrollView contentContainerStyle={styles.scrollContent}>
+            {/* MAIN BODY (Beige Background) */}
+            <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
                     <Text style={styles.sectionTitle}>Payment Details</Text>
                     <Text style={styles.sectionSubtitle}>Choose your preferred payment method</Text>
 
-                    {/* Secure Badge */}
-                    <View style={styles.secureBadge}>
-                        <Ionicons name="shield-checkmark-outline" size={20} color="#10B981" />
-                        <View style={{ marginLeft: 12 }}>
-                            <Text style={styles.secureTitle}>100% Secure Payment</Text>
-                            <Text style={styles.secureDesc}>Your payment information is encrypted and secure</Text>
+                    {/* SECURITY BADGE */}
+                    <View style={styles.securityBadge}>
+                        <Ionicons name="shield-checkmark-outline" size={20} color="#059669" style={styles.securityIcon} />
+                        <View>
+                            <Text style={styles.securityTextBold}>100% Secure Payment</Text>
+                            <Text style={styles.securityText}>Your payment information is encrypted and secure</Text>
                         </View>
                     </View>
 
-                    {/* Tabs */}
-                    <View style={styles.tabContainer}>
-                        {['UPI', 'Cards', 'Net Banking'].map((tab) => (
-                            <TouchableOpacity
-                                key={tab}
-                                style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
-                                onPress={() => setActiveTab(tab as any)}
-                            >
-                                <Ionicons
-                                    name={tab === 'UPI' ? 'phone-portrait-outline' : tab === 'Cards' ? 'card-outline' : 'business-outline'}
-                                    size={16}
-                                    color={activeTab === tab ? '#FFFFFF' : '#6B7280'}
-                                    style={{ marginRight: 6 }}
-                                />
-                                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                                    {tab}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
+                    {/* PAYMENT TABS WRAPPER */}
+                    <View style={styles.tabsWrapper}>
+                        <TouchableOpacity style={[styles.tab, activeTab === 'UPI' ? styles.tabActive : styles.tabInactive]} onPress={() => setActiveTab('UPI')}>
+                            <Ionicons name="phone-portrait-outline" size={16} color={activeTab === 'UPI' ? '#FFF' : '#4B5563'} />
+                            <Text style={[styles.tabText, activeTab === 'UPI' && styles.tabTextActive]}>UPI</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={[styles.tab, activeTab === 'CARDS' ? styles.tabActive : styles.tabInactive]} onPress={() => setActiveTab('CARDS')}>
+                            <Ionicons name="card-outline" size={16} color={activeTab === 'CARDS' ? '#FFF' : '#4B5563'} />
+                            <Text style={[styles.tabText, activeTab === 'CARDS' && styles.tabTextActive]}>Cards</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={[styles.tab, activeTab === 'NET_BANKING' ? styles.tabActive : styles.tabInactive]} onPress={() => setActiveTab('NET_BANKING')}>
+                            <MaterialCommunityIcons name="bank-outline" size={16} color={activeTab === 'NET_BANKING' ? '#FFF' : '#4B5563'} />
+                            <Text style={[styles.tabText, activeTab === 'NET_BANKING' && styles.tabTextActive]}>Net Banking</Text>
+                        </TouchableOpacity>
                     </View>
 
-                    {/* Tab Content Area */}
-                    <View style={styles.contentCard}>
+                    {/* MASTER PAYMENT CARD (The big white box!) */}
+                    <View style={styles.paymentCard}>
 
                         {activeTab === 'UPI' && (
                             <View>
-                                <View style={styles.paymentMethodHeader}>
-                                    <Ionicons name="qr-code-outline" size={20} color="#F97316" />
-                                    <Text style={styles.paymentMethodTitle}>Pay using any UPI app</Text>
+                                {/* UPI Apps Grey Container */}
+                                <View style={styles.upiAppsContainer}>
+                                    <View style={styles.upiHeader}>
+                                        <MaterialCommunityIcons name="qrcode-scan" size={20} color="#FE6700" />
+                                        <Text style={styles.upiHeaderText}>Pay using any UPI app</Text>
+                                    </View>
+                                    <View style={styles.upiAppsGrid}>
+                                        {UPI_APPS.map((app) => (
+                                            <View key={app} style={styles.upiAppPill}>
+                                                <Text style={styles.upiAppText}>{app}</Text>
+                                            </View>
+                                        ))}
+                                    </View>
                                 </View>
 
-                                {/* Chips */}
-                                <View style={styles.chipRow}>
-                                    {['Google Pay', 'PhonePe', 'Paytm', 'BHIM'].map(app => (
-                                        <View key={app} style={styles.chip}>
-                                            <Text style={styles.chipText}>{app}</Text>
-                                        </View>
-                                    ))}
-                                </View>
-
-                                {/* Input block */}
                                 <Text style={styles.inputLabel}>Enter UPI ID</Text>
                                 <TextInput
                                     style={styles.input}
@@ -218,214 +173,214 @@ export default function CheckoutScreen() {
                                     onChangeText={setUpiId}
                                     autoCapitalize="none"
                                 />
-                                <Text style={styles.helpText}>Example: 9876543210@paytm</Text>
+                                <Text style={styles.inputHelper}>Example: 9876543210@paytm</Text>
 
-                                <View style={styles.qrPlaceholder}>
-                                    <Ionicons name="qr-code" size={60} color="#9CA3AF" />
+                                {/* QR Code Grey Box */}
+                                <View style={styles.qrBox}>
+                                    <Ionicons name="qr-code-outline" size={48} color="#9CA3AF" style={styles.qrIcon} />
                                     <Text style={styles.qrText}>Or scan QR code with any UPI app</Text>
                                 </View>
+
+                                <Text style={styles.inputLabel}>Promo Code (Optional)</Text>
+
+                                <View style={styles.promoTipBox}>
+                                    <Ionicons name="gift" size={24} color="#FE6700" style={styles.giftIcon} />
+                                    <View style={styles.promoTipTextContainer}>
+                                        <Text style={styles.promoTipText}>
+                                            Tip: Use promo code <Text style={styles.promoHighlight}>FIRST10</Text>
+                                        </Text>
+                                        <Text style={styles.promoTipText}>for 10% off your first subscription</Text>
+                                    </View>
+                                    <TouchableOpacity>
+                                        <Text style={styles.applyBtnText}>Apply</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                <View style={styles.promoInputRow}>
+                                    <TextInput
+                                        style={styles.promoInput}
+                                        placeholder="Enter promo code"
+                                        placeholderTextColor="#9CA3AF"
+                                        value={promoCode}
+                                        onChangeText={setPromoCode}
+                                        autoCapitalize="characters"
+                                    />
+                                    <TouchableOpacity style={styles.applyBtnOutline}>
+                                        <Text style={styles.applyBtnText}>Apply</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                <TouchableOpacity
+                                    style={[styles.payButton, isProcessing && { opacity: 0.7 }]}
+                                    onPress={handlePay}
+                                    disabled={isProcessing}
+                                >
+                                    {isProcessing ? (
+                                        <ActivityIndicator color="#FFFFFF" />
+                                    ) : (
+                                        <>
+                                            <Feather name="lock" size={16} color="#FFF" style={styles.payBtnIcon} />
+                                            <Text style={styles.payButtonText}>Pay ₹{totalAmount}</Text>
+                                        </>
+                                    )}
+                                </TouchableOpacity>
+
+                                <Text style={styles.termsText}>
+                                    By completing this purchase, you agree to our Terms of Service and Privacy Policy
+                                </Text>
                             </View>
                         )}
 
-                        {activeTab !== 'UPI' && (
-                            <View style={styles.qrPlaceholder}>
-                                <Text style={styles.qrText}>Integration details for {activeTab} coming soon.</Text>
+                        {activeTab === 'CARDS' && (
+                            <View style={styles.placeholderBox}>
+                                <Ionicons name="card-outline" size={48} color="#D1D5DB" />
+                                <Text style={styles.placeholderText}>Credit & Debit Card form will go here.</Text>
                             </View>
                         )}
 
-                        {/* Promo Area shared across tabs */}
-                        <Text style={[styles.inputLabel, { marginTop: 24 }]}>Promo Code (Optional)</Text>
-                        <View style={styles.promoRow}>
-                            <TextInput
-                                style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                                placeholder="Enter promo code"
-                                placeholderTextColor="#9CA3AF"
-                                value={promoCode}
-                                onChangeText={setPromoCode}
-                            />
-                            <TouchableOpacity style={styles.applyBtn}>
-                                <Text style={styles.applyBtnText}>Apply</Text>
-                            </TouchableOpacity>
+                        {activeTab === 'NET_BANKING' && (
+                            <View style={styles.placeholderBox}>
+                                <MaterialCommunityIcons name="bank-outline" size={48} color="#D1D5DB" />
+                                <Text style={styles.placeholderText}>Net Banking options will go here.</Text>
+                            </View>
+                        )}
+
+                    </View>
+                    {/* END MASTER PAYMENT CARD */}
+
+                    {/* DYNAMIC ORDER SUMMARY */}
+                    <View style={styles.summaryContainer}>
+                        <Text style={styles.summaryTitle}>Order Summary</Text>
+
+                        <Text style={styles.planName}>{packageName}</Text>
+                        <Text style={styles.planDuration}>1 Month</Text>
+
+                        <View style={styles.featuresList}>
+                            {['Weekly health checkups', 'Vitals monitoring', 'Emergency contact support', 'Basic companionship'].map((feature, index) => (
+                                <View key={index} style={styles.featureRow}>
+                                    <Ionicons name="checkmark-circle" size={18} color="#FE6700" />
+                                    <Text style={styles.featureText}>{feature}</Text>
+                                </View>
+                            ))}
                         </View>
 
-                        {/* Total Payment Button */}
-                        <TouchableOpacity
-                            style={[styles.payButton, isProcessing && { opacity: 0.7 }]}
-                            onPress={handlePay}
-                            disabled={isProcessing}
-                        >
-                            {isProcessing ? (
-                                <ActivityIndicator color="#FFFFFF" />
-                            ) : (
-                                <>
-                                    <Ionicons name="lock-closed-outline" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-                                    <Text style={styles.payButtonText}>Pay ₹{totalAmount}</Text>
-                                </>
-                            )}
-                        </TouchableOpacity>
+                        <View style={styles.divider} />
 
-                        <Text style={styles.termsText}>
-                            By completing this purchase, you agree to our Terms of Service and Privacy Policy
-                        </Text>
+                        <View style={styles.priceRow}>
+                            <Text style={styles.priceLabel}>Subtotal</Text>
+                            <Text style={styles.priceValue}>₹{basePrice.toFixed(2)}</Text>
+                        </View>
+                        <View style={styles.priceRow}>
+                            <Text style={styles.priceLabel}>GST (18%)</Text>
+                            <Text style={styles.priceValue}>₹{taxes.toFixed(2)}</Text>
+                        </View>
 
+                        <View style={[styles.priceRow, { marginTop: 12 }]}>
+                            <Text style={styles.totalLabel}>Total</Text>
+                            <Text style={styles.totalValue}>₹{totalAmount}</Text>
+                        </View>
                     </View>
 
                 </ScrollView>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFF5ED', // Warm MaiHoonNa background
-    },
-    header: {
+    mainBackground: { flex: 1, backgroundColor: '#FAF5F0' },
+    safeAreaWhite: { backgroundColor: '#FFFFFF' },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingTop: Platform.OS === 'android' ? 20 : 10, paddingBottom: 16 },
+    backBtn: { width: 40, alignItems: 'flex-start' },
+    headerSpacer: { width: 40 },
+    headerTitles: { flex: 1, alignItems: 'center' },
+    headerTitle: { fontSize: 20, fontWeight: '700', color: '#111827', textAlign: 'center' },
+    headerSubtitle: { fontSize: 13, fontWeight: '400', color: '#6B7280', marginTop: 2, textAlign: 'center' },
+    scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
+    sectionTitle: { fontSize: 22, fontWeight: '700', color: '#111827', marginTop: 20 },
+    sectionSubtitle: { fontSize: 15, fontWeight: '400', color: '#111827', marginTop: 4, marginBottom: 16 },
+    securityBadge: { flexDirection: 'row', backgroundColor: '#ECFDF5', borderWidth: 1, borderColor: '#34D399', borderRadius: 8, padding: 16, marginBottom: 24, alignItems: 'center' },
+    securityIcon: { marginRight: 12 },
+    securityTextBold: { color: '#059669', fontWeight: '600', fontSize: 13 },
+    securityText: { color: '#059669', fontWeight: '400', fontSize: 13, marginTop: 2, paddingRight: 20 },
+
+    // TABS WRAPPER
+    tabsWrapper: {
         flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingTop: 10,
-        paddingBottom: 15,
         backgroundColor: '#FFFFFF',
-    },
-    backButton: { width: 40, height: 40, justifyContent: 'center' },
-    headerTextContainer: { alignItems: 'center' },
-    headerTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
-    headerSubtitle: { fontSize: 12, color: '#6B7280', marginTop: 2 },
-
-    scrollContent: {
-        padding: 20,
-        paddingBottom: 40,
-    },
-    sectionTitle: { fontSize: 18, fontWeight: '700', color: '#111827', marginBottom: 4 },
-    sectionSubtitle: { fontSize: 14, color: '#6B7280', marginBottom: 20 },
-
-    secureBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#ECFDF5', // Light green
-        borderWidth: 1,
-        borderColor: '#A7F3D0',
-        borderRadius: 8,
-        padding: 16,
+        borderRadius: 30,
+        padding: 6,           // 👈 Added a bit more padding inside the white box
+        gap: 8,               // 👈 This creates the perfect space between the pills!
         marginBottom: 24,
+        ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8 },
+            android: { elevation: 3 },
+            web: { boxShadow: '0px 2px 12px rgba(0, 0, 0, 0.08)' }
+        }),
     },
-    secureTitle: { fontSize: 14, fontWeight: '700', color: '#065F46' },
-    secureDesc: { fontSize: 12, color: '#047857', marginTop: 2 },
-
-    tabContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 16,
-    },
-    tabButton: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#FFEBE0',
-        paddingVertical: 12,
-        borderRadius: 20,
-        marginHorizontal: 4,
-    },
-    tabButtonActive: {
-        backgroundColor: '#F97316',
-    },
-    tabText: { fontSize: 13, fontWeight: '600', color: '#4B5563' },
+    tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 26 },
+    tabActive: { backgroundColor: '#FE6700' },
+    tabInactive: { backgroundColor: '#FFE1CC' },
+    tabText: { marginLeft: 6, fontSize: 13, fontWeight: '600', color: '#4B5563' },
     tabTextActive: { color: '#FFFFFF' },
 
-    contentCard: {
+    // MASTER PAYMENT CARD (Fixes the missing white background from Screenshot 10)
+    paymentCard: {
         backgroundColor: '#FFFFFF',
-        borderRadius: 12,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
+        borderRadius: 20,
+        padding: 24,
+        ...Platform.select({ ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12 }, android: { elevation: 3 }, web: { boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.06)' } }),
     },
-    paymentMethodHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F9FAFB',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 16,
-        marginLeft: -20,
-        marginRight: -20,
-        marginTop: -20,
-        borderTopLeftRadius: 12,
-        borderTopRightRadius: 12,
-    },
-    paymentMethodTitle: { fontSize: 14, fontWeight: '600', color: '#111827', marginLeft: 8 },
 
-    chipRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        marginBottom: 20,
-    },
-    chip: {
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderRadius: 6,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        marginRight: 8,
-        marginBottom: 8,
-    },
-    chipText: { fontSize: 12, color: '#4B5563', fontWeight: '500' },
+    // UPI GREY BOX
+    upiAppsContainer: { backgroundColor: '#E6E6E6', borderColor: '#BEDBFF', borderWidth: 0.86, borderRadius: 10, padding: 16, marginBottom: 24 },
+    upiHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+    upiHeaderText: { fontSize: 14, fontWeight: '600', color: '#111827', marginLeft: 8 },
+    upiAppsGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+    upiAppPill: { backgroundColor: '#FFFFFF', paddingHorizontal: 10, paddingVertical: 8, borderRadius: 6, marginRight: 8, marginBottom: 8 },
+    upiAppText: { fontSize: 13, fontWeight: '500', color: '#111827' },
 
-    inputLabel: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 8 },
-    input: {
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderRadius: 8,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        fontSize: 15,
-        color: '#111827',
-        marginBottom: 4,
-    },
-    helpText: { fontSize: 11, color: '#9CA3AF', marginBottom: 20 },
+    placeholderBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
+    placeholderText: { marginTop: 12, fontWeight: '400', color: '#9CA3AF', fontSize: 16 },
+    inputLabel: { fontSize: 14, fontWeight: '600', color: '#111827', marginBottom: 8 },
+    input: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, paddingHorizontal: 16, height: 50, fontSize: 15, fontWeight: '400' },
+    inputHelper: { fontSize: 12, fontWeight: '400', color: '#6B7280', marginTop: 6, marginBottom: 24 },
 
-    qrPlaceholder: {
-        backgroundColor: '#F9FAFB',
-        borderRadius: 12,
-        padding: 32,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    qrText: { fontSize: 13, color: '#6B7280', marginTop: 12, textAlign: 'center' },
+    // QR BOX (Fixes the white border box from Screenshot 10)
+    qrBox: { backgroundColor: '#F9FAFB', borderRadius: 12, padding: 32, alignItems: 'center', marginBottom: 24 },
+    qrIcon: { marginBottom: 12 },
+    qrText: { fontSize: 14, fontWeight: '400', color: '#6B7280' },
 
-    promoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
-    applyBtn: {
-        marginLeft: 12,
-        borderWidth: 1,
-        borderColor: '#F97316',
-        borderRadius: 8,
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-    },
-    applyBtnText: { color: '#F97316', fontWeight: '600', fontSize: 14 },
-
-    payButton: {
-        backgroundColor: '#F97316',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 16,
-        borderRadius: 8,
-        marginBottom: 16,
-    },
+    promoTipBox: { flexDirection: 'row', backgroundColor: '#FFF7F2', borderWidth: 1, borderColor: '#FFE1CC', borderRadius: 8, padding: 12, alignItems: 'center', marginBottom: 16 },
+    giftIcon: { marginRight: 12 },
+    promoTipTextContainer: { flex: 1 },
+    promoTipText: { fontSize: 13, fontWeight: '400', color: '#111827' },
+    promoHighlight: { color: '#FE6700', fontWeight: '700' },
+    applyBtnText: { color: '#FE6700', fontWeight: '600', fontSize: 14 },
+    promoInputRow: { flexDirection: 'row', marginBottom: 24 },
+    promoInput: { flex: 1, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, paddingHorizontal: 16, height: 50, fontSize: 15, fontWeight: '400', marginRight: 12 },
+    applyBtnOutline: { borderWidth: 1, borderColor: '#FE6700', borderRadius: 8, justifyContent: 'center', paddingHorizontal: 20, backgroundColor: '#FFFFFF' },
+    payButton: { backgroundColor: '#FE6700', flexDirection: 'row', height: 54, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+    payBtnIcon: { marginRight: 8 },
     payButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+    termsText: { textAlign: 'center', fontSize: 12, fontWeight: '400', color: '#6B7280', paddingHorizontal: 16, lineHeight: 18 },
 
-    termsText: {
-        fontSize: 11,
-        color: '#9CA3AF',
-        textAlign: 'center',
-        paddingHorizontal: 10,
-        lineHeight: 16,
+    // ORDER SUMMARY
+    summaryContainer: {
+        marginTop: 32, // Spaced apart from the payment card
+        backgroundColor: '#FFFFFF', borderRadius: 16, padding: 24,
+        ...Platform.select({ ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12 }, android: { elevation: 3 }, web: { boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.05)' } }),
     },
+    summaryTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 24 },
+    planName: { fontSize: 18, fontWeight: '700', color: '#111827' },
+    planDuration: { fontSize: 14, fontWeight: '400', color: '#6B7280', marginBottom: 16, marginTop: 4 },
+    featuresList: { marginBottom: 24 },
+    featureRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+    featureText: { fontSize: 14, fontWeight: '400', color: '#111827', marginLeft: 12 },
+    divider: { height: 1, backgroundColor: '#E5E7EB', marginBottom: 20 },
+    priceRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+    priceLabel: { fontSize: 14, fontWeight: '400', color: '#4B5563' },
+    priceValue: { fontSize: 14, fontWeight: '600', color: '#111827' },
+    totalLabel: { fontSize: 16, fontWeight: '600', color: '#111827' },
+    totalValue: { fontSize: 16, fontWeight: '700', color: '#FE6700' },
 });

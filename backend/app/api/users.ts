@@ -23,4 +23,13 @@ router.put('/:userId', authenticate, validate(updateUserSchema), async (req: Req
   }
 });
 
+router.get('/companion-profile/:userId', authenticate, async (req: Request, res: Response) => {
+  try {
+    const profile = await userService.getCompanionProfile(req.params.userId as string);
+    res.json({ success: true, data: profile });
+  } catch (e: unknown) {
+    res.status(404).json({ success: false, message: (e as Error).message });
+  }
+});
+
 export default router;

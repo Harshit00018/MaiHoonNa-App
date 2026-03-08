@@ -27,5 +27,5 @@ export default function Index() {
   }
 
   // If logged in, go straight to their specific Dashboard! Otherwise, go to Login.
-  return isLoggedIn ? <Redirect href="/(tabs)" /> : <Redirect href="/(auth)" />;
+  return isLoggedIn ? <Redirect href="/(subscriber)" /> : <Redirect href="/(auth)" />;
 }

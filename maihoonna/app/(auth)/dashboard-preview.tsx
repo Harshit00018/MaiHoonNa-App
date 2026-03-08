@@ -67,7 +67,7 @@ export default function DashboardPreviewScreen() {
 
                 <TouchableOpacity
                     style={styles.secondaryButton}
-                    onPress={() => router.replace("/(auth)/")}
+                    onPress={() => router.replace("/(auth)/" as any)}
                 >
                     <Text style={styles.secondaryButtonText}>Log Out</Text>
                 </TouchableOpacity>

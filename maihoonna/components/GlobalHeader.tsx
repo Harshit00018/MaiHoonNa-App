@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -11,6 +11,18 @@ interface GlobalHeaderProps {
 export function GlobalHeader({ title = "MaiHoonNa" }: GlobalHeaderProps) {
     const router = useRouter();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [userRole, setUserRole] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const dataStr = await AsyncStorage.getItem('userData');
+            if (dataStr) {
+                const data = JSON.parse(dataStr);
+                setUserRole(data.role);
+            }
+        };
+        fetchUserData();
+    }, []);
 
     const handleLogout = async () => {
         setIsMenuOpen(false);
@@ -20,12 +32,16 @@ export function GlobalHeader({ title = "MaiHoonNa" }: GlobalHeaderProps) {
 
     const handleGoDashboard = () => {
         setIsMenuOpen(false);
-        router.replace('/(tabs)/');
+        if (userRole === 'care_companion') {
+            router.replace('/(care-companion)');
+        } else {
+            router.replace('/(subscriber)');
+        }
     };
 
     const handleGoProfile = () => {
         setIsMenuOpen(false);
-        router.push('/(tabs)/profile'); // Assuming profile tab/page exists
+        router.push('/(subscriber)/profile'); // Assuming profile tab/page exists
     };
 
     const handleGoPackages = () => {
@@ -35,7 +51,9 @@ export function GlobalHeader({ title = "MaiHoonNa" }: GlobalHeaderProps) {
 
     return (
         <View style={styles.appBar}>
-            <Text style={styles.appTitle}>{title}</Text>
+            <TouchableOpacity onPress={handleGoDashboard}>
+                <Text style={styles.appTitle}>{title}</Text>
+            </TouchableOpacity>
             <View style={styles.appBarIcons}>
                 <TouchableOpacity style={styles.iconBtn}>
                     <Ionicons name="notifications-outline" size={24} color="#111827" />
@@ -66,15 +84,18 @@ export function GlobalHeader({ title = "MaiHoonNa" }: GlobalHeaderProps) {
                         <Text style={styles.dropdownItemText}>Profile</Text>
                     </TouchableOpacity>
 
-                    <View style={styles.separator} />
-
-                    <TouchableOpacity
-                        style={styles.dropdownItem}
-                        onPress={handleGoPackages}
-                    >
-                        <Ionicons name="cube-outline" size={20} color="#374151" style={{ marginRight: 8 }} />
-                        <Text style={styles.dropdownItemText}>Packages</Text>
-                    </TouchableOpacity>
+                    {userRole === 'subscriber' && (
+                        <>
+                            <View style={styles.separator} />
+                            <TouchableOpacity
+                                style={styles.dropdownItem}
+                                onPress={handleGoPackages}
+                            >
+                                <Ionicons name="cube-outline" size={20} color="#374151" style={{ marginRight: 8 }} />
+                                <Text style={styles.dropdownItemText}>Packages</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
 
                     <View style={styles.separator} />
 

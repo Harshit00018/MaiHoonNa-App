@@ -11,7 +11,7 @@ import {
     Platform
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 // Mock Data structure for the package, simulating a future backend response
 type PackageDetails = {
@@ -114,22 +114,44 @@ export default function SubscribeFormScreen() {
         }
     };
 
+    // Helper for Segmented buttons
+    const SegmentedButton = ({ label, active, onPress }: { label: string, active: boolean, onPress: () => void }) => (
+        <TouchableOpacity
+            style={[styles.segmentBtn, active && styles.segmentBtnActive]}
+            onPress={onPress}
+        >
+            <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{label}</Text>
+        </TouchableOpacity>
+    );
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
-                {/* Header */}
+                {/* Header matching Screenshot */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color="#111827" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTextContainer}>
-                        <Text style={styles.headerTitle}>Subscribe to Care</Text>
-                        <Text style={styles.headerSubtitle}>Step {currentStep} of 5</Text>
+                    <View style={styles.headerTopRow}>
+                        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+                            <Ionicons name="arrow-back" size={24} color="#111827" />
+                        </TouchableOpacity>
+                        <View style={styles.headerTextContainer}>
+                            <Text style={styles.headerTitle}>Subscribe to Care</Text>
+                            <Text style={styles.headerSubtitle}>Step {currentStep} of 5</Text>
+                        </View>
+                        <View style={styles.headerIcons}>
+                            <View>
+                                <Ionicons name="notifications-outline" size={26} color="#111827" />
+                                <View style={styles.notifBadge}><Text style={styles.notifText}>2</Text></View>
+                            </View>
+                            <Ionicons name="menu-outline" size={30} color="#111827" style={{ marginLeft: 15 }} />
+                        </View>
                     </View>
-                    <View style={{ width: 40 }} /> {/* Layout spacer */}
+                    {/* Progress Bar */}
+                    <View style={styles.progressBarBg}>
+                        <View style={[styles.progressBarFill, { width: currentStep === 1 ? '20%' : '40%' }]} />
+                    </View>
                 </View>
 
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -217,14 +239,20 @@ export default function SubscribeFormScreen() {
                             <View>
                                 <Text style={styles.sectionTitle}>Beneficiary Information</Text>
 
-                                <View style={styles.inputGroup}>
-                                    <Text style={styles.label}>Profile Photo</Text>
-                                    <TouchableOpacity style={styles.uploadButton}>
-                                        <Ionicons name="cloud-upload-outline" size={20} color="#4B5563" style={{ marginRight: 8 }} />
-                                        <Text style={styles.uploadButtonText}>Upload Photo</Text>
+                                {/* Profile Photo Upload UI */}
+                                <Text style={styles.label}>Profile Photo</Text>
+                                <View style={styles.photoUploadContainer}>
+                                    <TouchableOpacity style={styles.photoBox}>
+                                        <MaterialCommunityIcons name="image-plus" size={32} color="#4B5563" />
+                                        <Text style={styles.uploadLabel}>Upload Photo</Text>
+                                        <TouchableOpacity style={styles.editIconBadge}>
+                                            <Ionicons name="pencil" size={12} color="white" />
+                                        </TouchableOpacity>
                                     </TouchableOpacity>
+                                    <Text style={styles.photoHint}>Add a clear photo for identification</Text>
                                 </View>
 
+                                {/* Beneficiary Name */}
                                 <View style={styles.inputGroup}>
                                     <Text style={styles.label}>Beneficiary Name *</Text>
                                     <TextInput
@@ -232,58 +260,72 @@ export default function SubscribeFormScreen() {
                                         placeholder="Enter beneficiary's full name"
                                         placeholderTextColor="#9CA3AF"
                                         value={beneficiaryForm.fullName}
-                                        onChangeText={(text) => setBeneficiaryForm({ ...beneficiaryForm, fullName: text })}
+                                        onChangeText={(t) => setBeneficiaryForm({ ...beneficiaryForm, fullName: t })}
                                     />
                                 </View>
 
+                                {/* Date of Birth */}
                                 <View style={styles.inputGroup}>
                                     <Text style={styles.label}>Date of Birth *</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="DD/MM/YYYY"
-                                        placeholderTextColor="#9CA3AF"
-                                        value={beneficiaryForm.dob}
-                                        onChangeText={(text) => setBeneficiaryForm({ ...beneficiaryForm, dob: text })}
-                                    />
-                                </View>
-
-                                <View style={styles.inputGroup}>
-                                    <Text style={styles.label}>Gender *</Text>
-                                    {/* Note: In a real app, use a picker library like @react-native-picker/picker. Using TextInput + Icon to match mockup for now */}
-                                    <View style={styles.dropdownContainer}>
+                                    <View style={styles.inputWithIcon}>
                                         <TextInput
-                                            style={styles.dropdownInput}
-                                            placeholder="Select Gender"
+                                            style={styles.flexInput}
+                                            placeholder="dd-mm-yyyy"
                                             placeholderTextColor="#9CA3AF"
-                                            editable={false}
-                                            value={beneficiaryForm.gender}
+                                            value={beneficiaryForm.dob}
+                                            onChangeText={(t) => setBeneficiaryForm({ ...beneficiaryForm, dob: t })}
                                         />
-                                        <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
+                                        <Ionicons name="calendar-outline" size={20} color="#4B5563" />
                                     </View>
                                 </View>
 
+                                {/* Gender Segmented Selection */}
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Gender *</Text>
+                                    <View style={styles.segmentContainer}>
+                                        <SegmentedButton
+                                            label="Male"
+                                            active={beneficiaryForm.gender === 'Male'}
+                                            onPress={() => setBeneficiaryForm({ ...beneficiaryForm, gender: 'Male' })}
+                                        />
+                                        <SegmentedButton
+                                            label="Female"
+                                            active={beneficiaryForm.gender === 'Female'}
+                                            onPress={() => setBeneficiaryForm({ ...beneficiaryForm, gender: 'Female' })}
+                                        />
+                                    </View>
+                                </View>
+
+                                {/* Marital Status Segmented Selection */}
                                 <View style={styles.inputGroup}>
                                     <Text style={styles.label}>Marital Status *</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Single / Married / Widowed"
-                                        placeholderTextColor="#9CA3AF"
-                                        value={beneficiaryForm.maritalStatus}
-                                        onChangeText={(text) => setBeneficiaryForm({ ...beneficiaryForm, maritalStatus: text })}
-                                    />
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.segmentContainer}>
+                                        {['Single', 'Married', 'Widowed', 'Divorced'].map((status) => (
+                                            <SegmentedButton
+                                                key={status}
+                                                label={status}
+                                                active={beneficiaryForm.maritalStatus === status}
+                                                onPress={() => setBeneficiaryForm({ ...beneficiaryForm, maritalStatus: status })}
+                                            />
+                                        ))}
+                                    </ScrollView>
                                 </View>
 
+                                {/* Relationship Dropdown */}
                                 <View style={styles.inputGroup}>
                                     <Text style={styles.label}>Relationship to Subscriber *</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="E.g. Father, Mother"
-                                        placeholderTextColor="#9CA3AF"
-                                        value={beneficiaryForm.relationship}
-                                        onChangeText={(text) => setBeneficiaryForm({ ...beneficiaryForm, relationship: text })}
-                                    />
+                                    <View style={styles.inputWithIcon}>
+                                        <TextInput
+                                            style={styles.flexInput}
+                                            placeholder="E.g. Father, Mother"
+                                            placeholderTextColor="#9CA3AF"
+                                            value={beneficiaryForm.relationship}
+                                            onChangeText={(t) => setBeneficiaryForm({ ...beneficiaryForm, relationship: t })}
+                                        />
+                                    </View>
                                 </View>
 
+                                {/* Phone Number */}
                                 <View style={styles.inputGroup}>
                                     <Text style={styles.label}>Phone Number</Text>
                                     <TextInput
@@ -291,12 +333,12 @@ export default function SubscribeFormScreen() {
                                         placeholder="10-digit mobile number"
                                         placeholderTextColor="#9CA3AF"
                                         keyboardType="numeric"
-                                        maxLength={10}
                                         value={beneficiaryForm.phone}
-                                        onChangeText={(text) => setBeneficiaryForm({ ...beneficiaryForm, phone: text })}
+                                        onChangeText={(t) => setBeneficiaryForm({ ...beneficiaryForm, phone: t })}
                                     />
                                 </View>
 
+                                {/* Address Area */}
                                 <View style={styles.inputGroup}>
                                     <Text style={styles.label}>Address *</Text>
                                     <TextInput
@@ -304,10 +346,8 @@ export default function SubscribeFormScreen() {
                                         placeholder="Enter complete address"
                                         placeholderTextColor="#9CA3AF"
                                         multiline
-                                        numberOfLines={4}
-                                        textAlignVertical="top"
                                         value={beneficiaryForm.address}
-                                        onChangeText={(text) => setBeneficiaryForm({ ...beneficiaryForm, address: text })}
+                                        onChangeText={(t) => setBeneficiaryForm({ ...beneficiaryForm, address: t })}
                                     />
                                 </View>
                             </View>
@@ -316,10 +356,15 @@ export default function SubscribeFormScreen() {
                     </View>
                 </ScrollView>
 
-                {/* Bottom Bar containing Next Button */}
-                <View style={styles.bottomBar}>
-                    <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-                        <Text style={styles.nextButtonText}>Next</Text>
+                {/* Footer Buttons */}
+                <View style={styles.buttonRow}>
+                    {currentStep === 2 && (
+                        <TouchableOpacity style={styles.prevBtn} onPress={handleBack}>
+                            <Text style={styles.prevBtnText}>Previous</Text>
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity style={[styles.nextBtn, { flex: currentStep === 1 ? 1 : 0.48 }]} onPress={handleNext}>
+                        <Text style={styles.nextBtnText}>Next</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -329,48 +374,27 @@ export default function SubscribeFormScreen() {
 }
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFF5ED', // The app's warm background color
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingTop: 10,
-        paddingBottom: 15,
-        backgroundColor: '#FFFFFF',
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-    },
-    headerTextContainer: {
-        alignItems: 'center',
-    },
-    headerTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#111827',
-    },
-    headerSubtitle: {
-        fontSize: 12,
-        color: '#9CA3AF',
-        marginTop: 2,
-    },
-    scrollContent: {
-        padding: 20,
-        paddingBottom: 40,
-    },
+    safeArea: { flex: 1, backgroundColor: '#FFF5ED' },
+    header: { backgroundColor: '#FFFFFF', paddingTop: 10 },
+    headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, paddingBottom: 10 },
+    headerIcons: { flexDirection: 'row', alignItems: 'center' },
+    backButton: { width: 40 },
+    headerTextContainer: { alignItems: 'center' },
+    headerTitle: { fontSize: 16, fontWeight: '600', color: '#111827' },
+    headerSubtitle: { fontSize: 12, color: '#9CA3AF', textAlign: 'center' },
+    notifBadge: { position: 'absolute', right: -4, top: -2, backgroundColor: '#E46C2B', borderRadius: 10, width: 18, height: 18, justifyContent: 'center', alignItems: 'center' },
+    notifText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
+    progressBarBg: { height: 4, backgroundColor: '#E5E7EB', width: '100%' },
+    progressBarFill: { height: 4, backgroundColor: '#F97316', width: '40%' },
+
+    scrollContent: { padding: 15 },
     packageBanner: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#FFFFFF',
         borderWidth: 2,
-        borderColor: '#3B82F6', // Blue border from mockup
+        borderColor: '#3B82F6',
         borderRadius: 12,
         padding: 16,
         marginBottom: 24,
@@ -399,45 +423,17 @@ const styles = StyleSheet.create({
         color: '#F97316',
         marginBottom: 2,
     },
-    formCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        padding: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#111827',
-        marginBottom: 24,
-    },
-    inputGroup: {
-        marginBottom: 20,
-    },
-    label: {
-        fontSize: 13,
-        fontWeight: '500',
-        color: '#374151',
-        marginBottom: 8,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderRadius: 8,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        fontSize: 15,
-        color: '#111827',
-        backgroundColor: '#FFFFFF',
-    },
-    textArea: {
-        height: 100,
-        paddingTop: 12, // For android alignment when multiline
-    },
+
+    formCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, elevation: 1 },
+    sectionTitle: { fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 20 },
+
+    label: { fontSize: 14, fontWeight: '500', color: '#111827', marginBottom: 10 },
+    inputGroup: { marginBottom: 20 },
+    input: { borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 10, padding: 12, fontSize: 15, color: '#111827' },
+    inputWithIcon: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 10, padding: 12 },
+    flexInput: { flex: 1, fontSize: 15, color: '#111827' },
+    textArea: { height: 80, textAlignVertical: 'top' },
+
     phoneInputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -467,52 +463,22 @@ const styles = StyleSheet.create({
         color: '#111827',
         backgroundColor: '#FFFFFF',
     },
-    uploadButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderRadius: 8,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        alignSelf: 'flex-start',
-    },
-    uploadButtonText: {
-        fontSize: 14,
-        color: '#4B5563',
-        fontWeight: '500',
-    },
-    dropdownContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderRadius: 8,
-        paddingHorizontal: 16,
-        backgroundColor: '#FFFFFF',
-    },
-    dropdownInput: {
-        flex: 1,
-        paddingVertical: 12,
-        fontSize: 15,
-        color: '#111827',
-    },
-    bottomBar: {
-        backgroundColor: '#FFF5ED',
-        paddingHorizontal: 24,
-        paddingVertical: 16,
-        borderTopWidth: 1,
-        borderTopColor: '#FDE6D5',
-    },
-    nextButton: {
-        backgroundColor: '#F97316',
-        borderRadius: 8,
-        paddingVertical: 16,
-        alignItems: 'center',
-    },
-    nextButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
+
+    photoUploadContainer: { alignItems: 'center', marginBottom: 25 },
+    photoBox: { width: 150, height: 90, borderRadius: 12, borderStyle: 'dashed', borderWidth: 1, borderColor: '#D1D5DB', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F9FAFB' },
+    uploadLabel: { fontSize: 12, color: '#4B5563', marginTop: 5 },
+    editIconBadge: { position: 'absolute', bottom: -5, right: -5, backgroundColor: '#F97316', padding: 5, borderRadius: 10 },
+    photoHint: { fontSize: 11, color: '#4B5563', marginTop: 10 },
+
+    segmentContainer: { flexDirection: 'row', marginBottom: 5 },
+    segmentBtn: { backgroundColor: '#E5E7EB', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, marginRight: 10 },
+    segmentBtnActive: { backgroundColor: '#F97316' },
+    segmentText: { fontSize: 13, color: '#4B5563' },
+    segmentTextActive: { color: '#FFFFFF', fontWeight: '500' },
+
+    buttonRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 20 },
+    prevBtn: { flex: 0.48, borderWidth: 1, borderColor: '#F97316', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+    prevBtnText: { color: '#F97316', fontSize: 16, fontWeight: '600' },
+    nextBtn: { backgroundColor: '#F97316', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+    nextBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' }
 });
