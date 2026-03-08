@@ -116,7 +116,7 @@ export default function VerifyOtpScreen() {
                             {otp.map((digit, index) => (
                                 <TextInput
                                     key={index}
-                                    ref={(ref: any) => { inputRefs.current[index] = ref; }}
+                                    ref={(ref: TextInput | null) => { inputRefs.current[index] = ref; }}
                                     style={[styles.otpInput, digit ? styles.otpInputFilled : null]}
                                     keyboardType="numeric"
                                     maxLength={1}
