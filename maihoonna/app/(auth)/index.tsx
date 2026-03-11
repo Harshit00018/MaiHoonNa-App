@@ -15,7 +15,7 @@ import { useRouter } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 // Update this if you run on a physical device to your computer's local IP (e.g., http://192.168.1.5:3000/api)
-const API_URL = Platform.OS === "android" ? "http://10.0.2.2:8000/api" : "http://localhost:8000/api";
+import { API_URL } from '@/constants/api';
 
 export default function AuthScreen() {
   const [phone, setPhone] = useState("");

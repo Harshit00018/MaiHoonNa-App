@@ -4,14 +4,26 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import authRouter from './api/auth';
-import usersRouter from './api/users';
-import subscriptionsRouter from './api/subscriptions';
-import beneficiariesRouter from './api/beneficiaries';
-import visitsRouter from './api/visits';
-import medicationsRouter from './api/medications';
-import emergencyRouter from './api/emergency';
-import dashboardRouter from './api/dashboard';
+// Auth Routes
+import authRouter from './api/auth/auth.routes';
+
+// Subscriber Routes
+import dashboardRouter from './api/subscriber/dashboard.routes';
+import subscriptionsRouter from './api/subscriber/subscriptions.routes';
+import beneficiariesRouter from './api/subscriber/beneficiaries.routes';
+
+// Care Companion Routes
+import visitsRouter from './api/care_companion/visits.routes';
+
+// Admin Routes
+import usersRouter from './api/admin/users.routes';
+
+// Shared Routes
+import medicationsRouter from './api/shared/medications.routes';
+import emergencyRouter from './api/shared/emergency.routes';
+
+// Beneficiary Routes
+import beneficiaryDashboardRouter from './api/beneficiary/dashboard.routes';
 
 const app = express();
 
@@ -26,17 +38,29 @@ app.use(express.urlencoded({ extended: true }));
 const API = '/api';
 
 app.get(`${API}`, (_req, res) => {
-  res.json({ message: 'MaiHoonNa API', version: '1.0.0', status: 'active' });
+  res.json({ message: 'MaiHoonNa Role-Based API', version: '2.0.0', status: 'active' });
 });
 
+// Auth Route
 app.use(`${API}/auth`, authRouter);
-app.use(`${API}/users`, usersRouter);
-app.use(`${API}/subscriptions`, subscriptionsRouter);
-app.use(`${API}/beneficiaries`, beneficiariesRouter);
-app.use(`${API}/visits`, visitsRouter);
-app.use(`${API}/medications`, medicationsRouter);
-app.use(`${API}/emergency`, emergencyRouter);
-app.use(`${API}/dashboard`, dashboardRouter);
+
+// Role: Subscriber endpoints
+app.use(`${API}/subscriber/dashboard`, dashboardRouter);
+app.use(`${API}/subscriber/subscriptions`, subscriptionsRouter);
+app.use(`${API}/subscriber/beneficiaries`, beneficiariesRouter);
+
+// Role: Care Companion endpoints
+app.use(`${API}/care-companion/visits`, visitsRouter);
+
+// Role: Admin endpoints
+app.use(`${API}/admin/users`, usersRouter);
+
+// Role: Beneficiary endpoints
+app.use(`${API}/beneficiary/dashboard`, beneficiaryDashboardRouter);
+
+// Shared endpoints
+app.use(`${API}/shared/medications`, medicationsRouter);
+app.use(`${API}/shared/emergency`, emergencyRouter);
 
 // ─── 404 ──────────────────────────────────────────────────────────────────────
 app.use((_req, res) => {

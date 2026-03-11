@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = Platform.OS === "android" ? "http://10.0.2.2:8000/api" : "http://localhost:8000/api";
+import { API_URL } from '@/constants/api';
 
 export default function ProfileScreen() {
     const router = useRouter();
@@ -29,7 +29,7 @@ export default function ProfileScreen() {
                 const user = JSON.parse(userStr);
                 const token = await AsyncStorage.getItem('userToken');
 
-                const response = await fetch(`${API_URL}/users/companion-profile/${user.id}`, {
+                const response = await fetch(`${API_URL}/admin/users/companion-profile/${user.id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();

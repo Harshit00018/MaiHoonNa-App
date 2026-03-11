@@ -15,7 +15,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 // Update this if you run on a physical device to your computer's local IP (e.g., http://192.168.1.5:3000/api)
-const API_URL = Platform.OS === "android" ? "http://10.0.2.2:8000/api" : "http://localhost:8000/api";
+import { API_URL } from '@/constants/api';
 
 export default function VerifyOtpScreen() {
     const router = useRouter();
@@ -73,7 +73,17 @@ export default function VerifyOtpScreen() {
             // if (data.success) {
             // 2. Authentication Succeeded! Proceed to next Location Screen
             // In a real app, you would also securely store `data.token` here so the user stays logged in
-            router.push("/(setup)/subscription-packages");
+            //
+            // // NEW LOGIC FOR BENEFICIARY LOGIN:
+            // if (data.user.role === 'beneficiary') {
+            //    router.replace('/(beneficiary)');
+            // } else {
+            //    router.push("/(setup)/subscription-packages");
+            // }
+
+            // TEMPORARY BYPASS (Assuming subscriber for now until backend testing is active)
+            router.replace("/(subscriber)");
+
             // } else {
             //   // 3. Failed validation (Wrong OTP, Expired, etc)
             //   Alert.alert("Verification Failed", data.message || "Invalid OTP entered.");

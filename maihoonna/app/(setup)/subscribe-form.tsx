@@ -22,7 +22,7 @@ type PackageDetails = {
     hoursString: string;
 };
 
-const API_URL = Platform.OS === "android" ? "http://10.0.2.2:8000/api" : "http://localhost:8000/api";
+import { API_URL } from '@/constants/api';
 
 export default function SubscribeFormScreen() {
     const router = useRouter();
@@ -40,7 +40,7 @@ export default function SubscribeFormScreen() {
     React.useEffect(() => {
         const fetchPackage = async () => {
             try {
-                const response = await fetch(`${API_URL}/subscriptions/packages`);
+                const response = await fetch(`${API_URL}/subscriber/subscriptions/packages`);
                 const json = await response.json();
                 if (json.success) {
                     // Match the selected type, fallback to first item

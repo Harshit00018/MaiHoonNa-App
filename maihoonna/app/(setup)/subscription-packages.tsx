@@ -7,7 +7,7 @@ import { Image } from "react-native";
 
 type PlanDuration = 'basic' | '6months' | 'annual';
 
-const API_URL = Platform.OS === "android" ? "http://10.0.2.2:8000/api" : "http://localhost:8000/api";
+import { API_URL } from '@/constants/api';
 
 export default function SubscriptionPackagesScreen() {
     const router = useRouter();
@@ -18,7 +18,7 @@ export default function SubscriptionPackagesScreen() {
     useEffect(() => {
         const fetchPackages = async () => {
             try {
-                const response = await fetch(`${API_URL}/subscriptions/packages`);
+                const response = await fetch(`${API_URL}/subscriber/subscriptions/packages`);
                 const json = await response.json();
                 if (json.success) {
                     setPackages(json.data);

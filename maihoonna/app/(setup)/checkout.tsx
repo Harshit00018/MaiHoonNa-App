@@ -17,7 +17,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // 🛑 BACKEND SETUP
-const API_URL = Platform.OS === "android" ? "http://10.0.2.2:8000/api" : "http://localhost:8000/api";
+import { API_URL } from '@/constants/api';
 const UPI_APPS = ['Google Pay', 'PhonePe', 'Paytm', 'BHIM', 'Amazon Pay'];
 
 export default function CheckoutScreen() {
@@ -40,7 +40,7 @@ export default function CheckoutScreen() {
     useEffect(() => {
         const fetchPackage = async () => {
             try {
-                const response = await fetch(`${API_URL}/subscriptions/packages`);
+                const response = await fetch(`${API_URL}/subscriber/subscriptions/packages`);
                 const json = await response.json();
                 if (json.success) {
                     const pkgType = packageId || 'silver';
@@ -69,12 +69,13 @@ export default function CheckoutScreen() {
             const user = JSON.parse(storedUserData);
 
             const beneficiaryDataRaw = params.beneficiaryData as string;
-            let beneficiaryData = { name: "Mock Beneficiary", age: 65, gender: "Female", address: "789 Care Avenue", relationship: "Mother", phone: "9876543210" };
+            let beneficiaryData = { name: "Beneficiary", age: 65, gender: "Not specified", address: "Not provided", relationship: "Relative", phone: "9876543210" };
             if (beneficiaryDataRaw) {
                 try { beneficiaryData = { ...beneficiaryData, ...JSON.parse(beneficiaryDataRaw) }; } catch (e) { }
             }
 
-            const response = await fetch(`${API_URL}/subscriptions/purchase`, {
+            // Call the real backend to create beneficiary + subscription
+            const response = await fetch(`${API_URL}/subscriber/subscriptions/purchase`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id, packageId: packageId, beneficiaryData: beneficiaryData })
@@ -82,9 +83,10 @@ export default function CheckoutScreen() {
             const data = await response.json();
 
             if (data.success) {
-                router.replace({ pathname: '/(setup)/payment-success', params: { orderId: data.subscriptionId, packageName: data.package, price: totalAmount } });
+                // Payment gateway is mocked for now, but beneficiary is saved in DB
+                router.replace({ pathname: '/(setup)/payment-success', params: { orderId: data.subscriptionId, packageName: data.package || packageName, price: totalAmount } });
             } else {
-                throw new Error(data.message || "Payment attempt failed on server.");
+                throw new Error(data.message || "Purchase failed on server.");
             }
         } catch (error: any) {
             Alert.alert("Checkout Failed", error.message);

@@ -44,6 +44,19 @@ export default function ProfileScreen() {
                         <Text style={styles.label}>User ID</Text>
                         <Text style={styles.value}>{userData.id}</Text>
                     </View>
+
+                    <View style={styles.divider} />
+
+                    <TouchableOpacity
+                        style={styles.navRow}
+                        onPress={() => router.push('/(setup)/subscription-packages')}
+                    >
+                        <View style={styles.navRowLeft}>
+                            <Ionicons name="ribbon-outline" size={20} color="#F97316" style={{ marginRight: 10 }} />
+                            <Text style={styles.navRowText}>Browse Packages</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                    </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity
@@ -83,6 +96,10 @@ const styles = StyleSheet.create({
     infoRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 12 },
     label: { fontSize: 14, color: '#6B7280' },
     value: { fontSize: 14, fontWeight: '500', color: '#111827' },
+
+    navRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingVertical: 8 },
+    navRowLeft: { flexDirection: 'row', alignItems: 'center' },
+    navRowText: { fontSize: 16, fontWeight: '500', color: '#111827' },
 
     actionButton: {
         flexDirection: 'row',

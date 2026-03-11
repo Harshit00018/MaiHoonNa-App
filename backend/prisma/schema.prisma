@@ -44,6 +44,13 @@ enum EmergencyStatus {
   resolved
 }
 
+enum PaymentStatus {
+  pending
+  success
+  failed
+  refunded
+}
+
 model User {
   id        String   @id @default(uuid())
   phone     String   @unique
@@ -61,10 +68,12 @@ model User {
 
   beneficiaryProfile      Beneficiary[]        @relation("BeneficiaryUser")
   subscriberBeneficiaries Beneficiary[]        @relation("SubscriberBeneficiaries")
+  fieldManagerFor         Beneficiary[]        @relation("FieldManager")
   careCompanionProfile    CareCompanion?
   emergencyRequests       EmergencyRequest[]   @relation("RequestedBy")
   assignedEmergencies     EmergencyRequest[]   @relation("AssignedTo")
   adherenceRecords        MedicationAdherence[]
+  payments                Payment[]            @relation("SubscriberPayments")
 
   @@map("users")
 }
@@ -100,8 +109,35 @@ model Subscription {
   createdAt       DateTime         @default(now())
 
   package         SubscriptionPackage @relation(fields: [packageType], references: [type])
+  payments        Payment[]
 
   @@map("subscriptions")
+}
+
+model Payment {
+  id               String           @id @default(uuid())
+  subscriberId     String
+  beneficiaryId    String
+  subscriptionId   String
+  packageType      SubscriptionType
+  amountPaid       Float
+  currency         String           @default("INR")
+  paymentMethod    String           @default("UPI")     // UPI, Card, NetBanking, etc.
+  paymentStatus    PaymentStatus    @default(pending)
+  transactionId    String?          @unique              // Gateway transaction reference
+  planStartDate    DateTime                              // When the plan starts
+  planEndDate      DateTime                              // When the plan ends
+  isSubscriptionActive Boolean      @default(true)       // Is the linked subscription still active?
+  enrolledAt       DateTime         @default(now())      // When the subscriber enrolled this beneficiary
+  paidAt           DateTime?                             // When payment was confirmed
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  subscriber       User             @relation("SubscriberPayments", fields: [subscriberId], references: [id])
+  beneficiary      Beneficiary      @relation(fields: [beneficiaryId], references: [id])
+  subscription     Subscription     @relation(fields: [subscriptionId], references: [id])
+
+  @@map("payments")
 }
 
 model Beneficiary {
@@ -117,16 +153,22 @@ model Beneficiary {
   medications       String[]
   emergencyContacts Json     @default("[]")
   primaryCcId       String?
+  secondaryCcId     String?
+  fieldManagerId    String?
   emotionalScore    Float    @default(8.0)
   createdAt         DateTime @default(now())
 
   user              User           @relation("BeneficiaryUser", fields: [userId], references: [id])
   subscriber        User           @relation("SubscriberBeneficiaries", fields: [subscriberId], references: [id])
   primaryCC         CareCompanion? @relation("PrimaryCC", fields: [primaryCcId], references: [id])
+  secondaryCC       CareCompanion? @relation("SecondaryCC", fields: [secondaryCcId], references: [id])
+  fieldManager      User?          @relation("FieldManager", fields: [fieldManagerId], references: [id])
   visits            Visit[]
   medicationList    Medication[]
   adherenceRecords  MedicationAdherence[]
   emergencyRequests EmergencyRequest[]
+  calls             CallLog[]      @relation("BeneficiaryCalls")
+  payments          Payment[]
 
   @@map("beneficiaries")
 }
@@ -145,8 +187,22 @@ model CareCompanion {
   user       User          @relation(fields: [userId], references: [id])
   visits     Visit[]
   primaryFor Beneficiary[] @relation("PrimaryCC")
+  secondaryFor Beneficiary[] @relation("SecondaryCC")
 
   @@map("care_companions")
+}
+
+model CallLog {
+  id         String   @id @default(uuid())
+  callerId   String
+  receiverId String
+  timestamp  DateTime @default(now())
+
+  caller     Beneficiary @relation("BeneficiaryCalls", fields: [callerId], references: [id])
+  // We don't strictly relate receiver to either User or CC in DB to avoid complex polymorphism if not needed,
+  // but we can query it easily from app layer since ID is unique UUID.
+
+  @@map("call_logs")
 }
 
 model Visit {

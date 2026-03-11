@@ -2,6 +2,7 @@ import Joi from 'joi';
 
 export const createBeneficiarySchema = Joi.object({
   subscriberId: Joi.string().uuid().required(),
+  phone: Joi.string().required(), // Required so Beneficiary can log in
   name: Joi.string().required(),
   photo: Joi.string().optional(),
   age: Joi.number().integer().min(1).required(),

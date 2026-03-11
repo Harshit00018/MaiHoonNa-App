@@ -14,7 +14,7 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = Platform.OS === "android" ? "http://10.0.2.2:8000/api" : "http://localhost:8000/api";
+import { API_URL } from '@/constants/api';
 
 export default function LoginPasswordScreen() {
     const [form, setForm] = useState({
@@ -53,14 +53,13 @@ export default function LoginPasswordScreen() {
                 await AsyncStorage.setItem('userToken', data.token);
                 await AsyncStorage.setItem('userData', JSON.stringify(data.user));
 
-                // Login successful! Drop them on the dashboard preview page
+                // Login successful! Drop them on the appropriate dashboard
                 if (data.user.role === 'care_companion') {
                     router.replace("/(care-companion)");
+                } else if (data.user.role === 'beneficiary') {
+                    router.replace("/(beneficiary)");
                 } else {
-                    router.push({
-                        pathname: "/(auth)/dashboard-preview",
-                        params: { user: JSON.stringify(data.user) }
-                    });
+                    router.replace("/(subscriber)");
                 }
             } else {
                 Alert.alert("Login Failed", data.message || "Invalid credentials.");
