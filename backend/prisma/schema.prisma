@@ -292,3 +292,53 @@ model Otp {
 
   @@map("otps")
 }
+
+// ─── Marketing & Lead Tracking ───────────────────────────────────────────────
+
+enum LeadSource {
+  website
+  mobile_app
+  referral
+  social_media
+  cold_call
+  event
+  other
+}
+
+enum LeadStatus {
+  new
+  contacted
+  interested
+  converted
+  lost
+}
+
+model MarketingLead {
+  id          String     @id @default(uuid())
+
+  // Contact info
+  name        String
+  phone       String
+  email       String?
+  city        String?
+  pincode     String?
+
+  // Lead context
+  source      LeadSource @default(website)  // Where did this lead come from?
+  status      LeadStatus @default(new)      // Current stage in the funnel
+  interests   String[]                      // e.g. ["silver_plan", "beneficiary_care"]
+  notes       String?                       // Internal notes by admin / sales team
+
+  // UTM / campaign tracking (useful for web forms)
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+
+  // Timestamps
+  followUpAt  DateTime?                     // Scheduled follow-up date
+  convertedAt DateTime?                     // When they became a subscriber
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("marketing_leads")
+}
