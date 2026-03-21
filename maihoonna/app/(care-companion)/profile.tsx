@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Act
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logoutWithConfirm } from '../../utils/logout';
 
 import { API_URL } from '@/constants/api';
 
@@ -49,10 +50,7 @@ export default function ProfileScreen() {
         fetchProfile();
     }, []);
 
-    const handleLogout = async () => {
-        await AsyncStorage.clear();
-        router.replace('/(auth)');
-    };
+    const handleLogout = () => logoutWithConfirm();
 
     if (loading || !profile) {
         return (
@@ -206,7 +204,7 @@ export default function ProfileScreen() {
                     </View>
 
                     {/* Logout Button */}
-                    <TouchableOpacity style={styles.logoutOutlineBtn} onPress={handleLogout}>
+                    <TouchableOpacity style={styles.logoutOutlineBtn} onPress={logoutWithConfirm}>
                         <Ionicons name="log-out-outline" size={20} color="#DC2626" />
                         <Text style={styles.logoutOutlineText}>Logout</Text>
                     </TouchableOpacity>

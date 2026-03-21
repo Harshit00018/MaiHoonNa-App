@@ -21,6 +21,7 @@ import usersRouter from './api/admin/users.routes';
 // Shared Routes
 import medicationsRouter from './api/shared/medications.routes';
 import emergencyRouter from './api/shared/emergency.routes';
+import callbackRouter from './api/shared/callback.routes';
 
 // Beneficiary Routes
 import beneficiaryDashboardRouter from './api/beneficiary/dashboard.routes';
@@ -61,6 +62,7 @@ app.use(`${API}/beneficiary/dashboard`, beneficiaryDashboardRouter);
 // Shared endpoints
 app.use(`${API}/shared/medications`, medicationsRouter);
 app.use(`${API}/shared/emergency`, emergencyRouter);
+app.use(`${API}/shared/callbacks`, callbackRouter);
 
 // ─── 404 ──────────────────────────────────────────────────────────────────────
 app.use((_req, res) => {

@@ -63,6 +63,11 @@ export default function BeneficiaryLayout() {
                     tabBarIcon: ({ color }) => <Feather name="more-horizontal" size={24} color={color} />,
                 }}
             />
+            {/* Detail screens — hidden from the tab bar */}
+            <Tabs.Screen
+                name="team"
+                options={{ href: null }} // removes it from tab bar entirely
+            />
         </Tabs>
     );
 }

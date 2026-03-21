@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GlobalHeader } from '../../components/GlobalHeader';
+import { logoutWithConfirm } from '@/utils/logout';
+
 
 export default function ProfileScreen() {
     const router = useRouter();
@@ -61,10 +63,7 @@ export default function ProfileScreen() {
 
                 <TouchableOpacity
                     style={styles.actionButton}
-                    onPress={async () => {
-                        await AsyncStorage.clear();
-                        router.replace('/(auth)');
-                    }}
+                    onPress={logoutWithConfirm}
                 >
                     <Ionicons name="log-out-outline" size={20} color="#EF4444" />
                     <Text style={styles.actionLabel}>Logout</Text>

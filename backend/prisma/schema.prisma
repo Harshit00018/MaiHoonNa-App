@@ -69,11 +69,14 @@ model User {
   beneficiaryProfile      Beneficiary[]        @relation("BeneficiaryUser")
   subscriberBeneficiaries Beneficiary[]        @relation("SubscriberBeneficiaries")
   fieldManagerFor         Beneficiary[]        @relation("FieldManager")
+  fieldManagerProfile     FieldManager?
   careCompanionProfile    CareCompanion?
   emergencyRequests       EmergencyRequest[]   @relation("RequestedBy")
   assignedEmergencies     EmergencyRequest[]   @relation("AssignedTo")
   adherenceRecords        MedicationAdherence[]
   payments                Payment[]            @relation("SubscriberPayments")
+  zonesManaged            Zone[]               @relation("ZoneFieldManager")
+  callbackRequests        CallbackRequest[]    @relation("SubscriberCallbacks")
 
   @@map("users")
 }
@@ -169,6 +172,7 @@ model Beneficiary {
   emergencyRequests EmergencyRequest[]
   calls             CallLog[]      @relation("BeneficiaryCalls")
   payments          Payment[]
+  callbackRequests  CallbackRequest[]
 
   @@map("beneficiaries")
 }
@@ -182,14 +186,45 @@ model CareCompanion {
   specialization String[]
   zone           String
   isAvailable    Boolean  @default(true)
+  teamId         String?
   createdAt      DateTime @default(now())
 
   user       User          @relation(fields: [userId], references: [id])
+  team       Team?         @relation(fields: [teamId], references: [id])
   visits     Visit[]
   primaryFor Beneficiary[] @relation("PrimaryCC")
   secondaryFor Beneficiary[] @relation("SecondaryCC")
 
   @@map("care_companions")
+}
+
+model FieldManager {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  name           String
+  photo          String?
+  zone           String
+  isAvailable    Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id])
+  teams Team[]
+
+  @@map("field_managers")
+}
+
+model Team {
+  id             String   @id @default(uuid())
+  name           String
+  fieldManagerId String
+  zone           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  fieldManager   FieldManager    @relation(fields: [fieldManagerId], references: [id])
+  careCompanions CareCompanion[]
+
+  @@map("teams")
 }
 
 model CallLog {
@@ -293,6 +328,30 @@ model Otp {
   @@map("otps")
 }
 
+// ─── Zones / Nodal Centers ────────────────────────────────────────────────────
+
+model Zone {
+  id             String    @id @default(uuid())
+  name           String    @unique
+  city           String
+  address        String
+  state          String
+  pincode        String
+  latitude       Float?
+  longitude      Float?
+  phone          String?
+  leaseStartDate DateTime?
+  leaseEndDate   DateTime?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  fieldManagerId String?
+  fieldManager   User?     @relation("ZoneFieldManager", fields: [fieldManagerId], references: [id])
+
+  @@map("zones")
+}
+
 // ─── Marketing & Lead Tracking ───────────────────────────────────────────────
 
 enum LeadSource {
@@ -341,4 +400,28 @@ model MarketingLead {
   updatedAt   DateTime   @updatedAt
 
   @@map("marketing_leads")
+}
+// ─── Callbacks ───────────────────────────────────────────────────────────────
+
+enum CallbackStatus {
+  pending
+  called
+  resolved
+}
+
+model CallbackRequest {
+  id            String         @id @default(uuid())
+  name          String
+  phone         String
+  subscriberId  String?
+  beneficiaryId String?
+  status        CallbackStatus @default(pending)
+  notes         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  subscriber  User?        @relation("SubscriberCallbacks", fields: [subscriberId], references: [id])
+  beneficiary Beneficiary? @relation(fields: [beneficiaryId], references: [id])
+
+  @@map("callback_requests")
 }

@@ -7,17 +7,17 @@ const router = Router();
 // Dashboard for Beneficiary
 router.get('/dashboard/:beneficiaryId', authenticate, async (req: Request, res: Response) => {
     try {
-        const beneficiaryId = req.params.beneficiaryId as string;
+        const userId = req.params.beneficiaryId as string;
 
         const beneficiary = await prisma.beneficiary.findUnique({
-            where: { id: beneficiaryId },
+            where: { userId: userId },
             include: {
                 primaryCC: true,
             },
         });
 
         if (!beneficiary) {
-            return res.status(404).json({ success: false, message: 'Beneficiary not found' });
+            return res.status(404).json({ success: false, message: 'Beneficiary profile not found for this user' });
         }
 
         // Determine greeting based on time in IST (server time assumption or static for now)
@@ -29,7 +29,7 @@ router.get('/dashboard/:beneficiaryId', authenticate, async (req: Request, res: 
         // Get next visit
         const nextVisit = await prisma.visit.findFirst({
             where: {
-                beneficiaryId,
+                beneficiaryId: beneficiary.id,
                 scheduledTime: { gte: new Date() },
                 status: 'scheduled',
             },
@@ -38,7 +38,7 @@ router.get('/dashboard/:beneficiaryId', authenticate, async (req: Request, res: 
 
         // Calculate Adherence (Mock formula based on records, or just a static high number for demo if no records)
         const adherenceRecords = await prisma.medicationAdherence.findMany({
-            where: { beneficiaryId },
+            where: { beneficiaryId: beneficiary.id },
         });
 
         let adherencePercentage = 95; // Default high for demo purporses
@@ -55,7 +55,7 @@ router.get('/dashboard/:beneficiaryId', authenticate, async (req: Request, res: 
 
         const medications = await prisma.medication.findMany({
             where: {
-                beneficiaryId,
+                beneficiaryId: beneficiary.id,
                 isActive: true,
             },
             include: {
@@ -106,12 +106,12 @@ router.get('/dashboard/:beneficiaryId', authenticate, async (req: Request, res: 
 });
 
 // Fetch Care Team
-router.get('/:beneficiaryId/team', authenticate, async (req: Request, res: Response) => {
+router.get('/:userId/team', authenticate, async (req: Request, res: Response) => {
     try {
-        const beneficiaryId = req.params.beneficiaryId as string;
+        const userId = req.params.userId as string;
 
         const beneficiary = await prisma.beneficiary.findUnique({
-            where: { id: beneficiaryId },
+            where: { userId: userId },
             include: {
                 primaryCC: true,
                 secondaryCC: true,
@@ -120,7 +120,7 @@ router.get('/:beneficiaryId/team', authenticate, async (req: Request, res: Respo
         });
 
         if (!beneficiary) {
-            return res.status(404).json({ success: false, message: 'Beneficiary not found' });
+            return res.status(404).json({ success: false, message: 'Beneficiary profile not found' });
         }
 
         const team = [];

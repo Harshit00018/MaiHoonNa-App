@@ -41,7 +41,7 @@ export default function LoginPasswordScreen() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    phone: form.phone,
+                    phone: `+91${form.phone}`,   // match the format saved during registration
                     password: form.password
                 }),
             });

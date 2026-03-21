@@ -68,17 +68,39 @@ export default function CheckoutScreen() {
             if (!storedUserData) throw new Error("You are not logged in. Session expired.");
             const user = JSON.parse(storedUserData);
 
+            const subscriberDataRaw = params.subscriberData as string;
             const beneficiaryDataRaw = params.beneficiaryData as string;
+            const medicalDataRaw = params.medicalData as string;
+            const emergencyContactsRaw = params.emergencyContacts as string;
+            const preferencesDataRaw = params.preferencesData as string;
+
+            let subscriberData = {};
             let beneficiaryData = { name: "Beneficiary", age: 65, gender: "Not specified", address: "Not provided", relationship: "Relative", phone: "9876543210" };
-            if (beneficiaryDataRaw) {
-                try { beneficiaryData = { ...beneficiaryData, ...JSON.parse(beneficiaryDataRaw) }; } catch (e) { }
-            }
+            let medicalData = {};
+            let emergencyContacts = {};
+            let preferencesData = {};
+
+            try { if (subscriberDataRaw) subscriberData = JSON.parse(subscriberDataRaw); } catch(e) {}
+            try { if (beneficiaryDataRaw) beneficiaryData = { ...beneficiaryData, ...JSON.parse(beneficiaryDataRaw) }; } catch(e) {}
+            try { if (medicalDataRaw) medicalData = JSON.parse(medicalDataRaw); } catch(e) {}
+            try { if (emergencyContactsRaw) emergencyContacts = JSON.parse(emergencyContactsRaw); } catch(e) {}
+            try { if (preferencesDataRaw) preferencesData = JSON.parse(preferencesDataRaw); } catch(e) {}
 
             // Call the real backend to create beneficiary + subscription
+            const payload = {
+                userId: user.id,
+                packageId: packageId,
+                subscriberData,
+                beneficiaryData,
+                medicalData,
+                emergencyContacts,
+                preferencesData
+            };
+
             const response = await fetch(`${API_URL}/subscriber/subscriptions/purchase`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id, packageId: packageId, beneficiaryData: beneficiaryData })
+                body: JSON.stringify(payload)
             });
             const data = await response.json();
 

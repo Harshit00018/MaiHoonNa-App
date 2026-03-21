@@ -8,6 +8,7 @@ import { Image } from "react-native";
 type PlanDuration = 'basic' | '6months' | 'annual';
 
 import { API_URL } from '@/constants/api';
+import { CallbackButton } from '../../components/CallbackButton';
 
 export default function SubscriptionPackagesScreen() {
     const router = useRouter();
@@ -245,10 +246,11 @@ export default function SubscriptionPackagesScreen() {
                     </View>
 
                     <View style={styles.assistanceActions}>
-                        <TouchableOpacity style={styles.callbackBtn}>
-                            <Ionicons name="call-outline" size={18} color="#F97316" style={{ marginRight: 8 }} />
-                            <Text style={styles.callbackText}>Request Callback</Text>
-                        </TouchableOpacity>
+                        <CallbackButton
+                            style={styles.callbackBtn}
+                            textStyle={styles.callbackText}
+                            notes="Requested assistance from Subscription Packages page"
+                        />
                         <TouchableOpacity style={styles.whatsappBtn}>
                             <Ionicons name="chatbox-ellipses-outline" size={28} color="#F97316" />
                         </TouchableOpacity>

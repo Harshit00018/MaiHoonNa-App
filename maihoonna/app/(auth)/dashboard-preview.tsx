@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { logoutWithConfirm } from '../../utils/logout';
 
 export default function DashboardPreviewScreen() {
     const router = useRouter();
@@ -67,7 +68,7 @@ export default function DashboardPreviewScreen() {
 
                 <TouchableOpacity
                     style={styles.secondaryButton}
-                    onPress={() => router.replace("/(auth)/" as any)}
+                    onPress={logoutWithConfirm}
                 >
                     <Text style={styles.secondaryButtonText}>Log Out</Text>
                 </TouchableOpacity>

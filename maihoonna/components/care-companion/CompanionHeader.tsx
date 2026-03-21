@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logoutWithConfirm } from '../../utils/logout';
 
 interface CompanionHeaderProps {
     userName: string;
@@ -26,10 +27,9 @@ export function CompanionHeader({ userName }: CompanionHeaderProps) {
         return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
     };
 
-    const handleLogout = async () => {
+    const handleLogout = () => {
         setIsMenuOpen(false);
-        await AsyncStorage.clear();
-        router.replace('/(auth)');
+        logoutWithConfirm();
     };
 
     return (
